@@ -9,16 +9,21 @@ import java.util.*;
 @Component
 public class TmdbClient {
 
-    @Value("${tmdb.api.key}")
+    @Value("${tmdb.api.key:}")
     private String apiKey;
 
-    @Value("${tmdb.base-url}")
+    @Value("${tmdb.base-url:https://api.themoviedb.org/3}")
     private String baseUrl;
 
     private final RestTemplate restTemplate = new RestTemplate();
 
     @SuppressWarnings("unchecked")
     public List<String> fetchTopMoviesByGenres(List<Integer> genreIds) {
+
+        if (apiKey == null || apiKey.isBlank()) {
+            // 키 없으면 TMDB 호출 안 함 (배포 안정용)
+            return Collections.emptyList();
+        }
 
         String genres = String.join(
                 ",",
@@ -27,7 +32,6 @@ public class TmdbClient {
 
         List<String> titles = new ArrayList<>();
 
-        // page 1~3 → 최대 60개 확보
         for (int page = 1; page <= 3; page++) {
 
             String url =
